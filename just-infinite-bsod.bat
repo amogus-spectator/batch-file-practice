@@ -6,7 +6,12 @@ set scriptDir=%~dp0
 :: Get the script path
 set scriptPath=%~f0
 :: Run the script as admin
-powershell -Command "& { Start-Process cmd.exe -ArgumentList '/c \"%~f0\"' -Verb RunAs }"
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+  echo Elevating...
+  powershell -Command "& { Start-Process cmd.exe -ArgumentList '/c \"%~f0\"' -Verb RunAs }"
+  exit /b
+)
 
 
 echo %scriptDir%
